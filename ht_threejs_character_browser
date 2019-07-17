@@ -1,0 +1,148 @@
+
+<script type="text/javascript" src="https://www.hightype.net/wp-content/themes/hightype/js/three.min.js?ver=1.0.0"></script>
+<script type="text/javascript" src="https://www.hightype.net/wp-content/themes/hightype/js/OBJLoader.js?ver=1.0.0"></script>
+<script type="text/javascript" src="https://www.hightype.net/wp-content/themes/hightype/js/OrbitControls.js?ver=1.0.0"></script>
+
+
+<script>
+var objectArr = new Array();
+
+var camera, scene, renderer;
+var mouseX = 0, mouseY = 0;
+var manager;
+var managerPlane;
+var mouseMoved = false;
+var mouseCoords = new THREE.Vector2();
+
+var windowHalfX = window.innerWidth / 4;
+var windowHalfY = window.innerWidth / 4;
+var object;
+var threeInitiad = false;
+
+function init3D() {
+
+	var canvas = document.querySelector('#three-left');
+
+	camera = new THREE.PerspectiveCamera( 3, (.5*window.innerWidth) / (.5*window.innerWidth), 1, 2000 );
+
+	scene = new THREE.Scene();
+	scene.background = new THREE.Color(0xbda7ff);
+	var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.9 );
+	scene.add( ambientLight );
+
+	var pointLight = new THREE.PointLight( 0xffffff, 0.2 );
+	camera.add( pointLight );
+	scene.add( camera );
+
+
+	var index = 0;
+
+	// ADD PATH TO FONT AND TEXTURE FILE HERE
+	var files = ['https://www.hightype.net/wp-content/themes/hightype/js/190525_ht-std_q.obj','https://www.hightype.net/wp-content/themes/hightype/js/190429_ht_groundplane.obj'];
+	var textures = ['https://www.hightype.net/wp-content/themes/hightype/js/HT-Standard_Black30_Q_Baseline_141_texture.jpg','https://www.hightype.net/wp-content/themes/hightype/js/Q_Groundplane2.jpg'];
+
+	var objLoader = new THREE.OBJLoader();
+	var textureLoader = new THREE.TextureLoader();
+
+
+	function loadNextFile() {
+
+		if (index > files.length - 1) return;
+
+			objLoader.load(files[index], function(object) {
+				objectArr[index] = object;
+				objectArr[index].position.z = 0;
+				objectArr[index].position.x = 0;
+				objectArr[index].position.y = -6.5;
+				scene.add(objectArr[index]);
+
+				var texture = textureLoader.load(textures[index] );
+
+				//Apply Materials
+				objectArr[index].traverse( function ( child ) {
+					if ( child.isMesh ) child.material = new THREE.MeshBasicMaterial({map: texture});
+				} );
+
+				index++;
+				loadNextFile();
+			});
+
+		}
+
+		loadNextFile();
+
+
+		renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize(window.innerWidth, window.innerWidth);
+
+
+		var controls = new THREE.OrbitControls( camera, renderer.domElement );
+		camera.position.set( 150, 80, 280 );
+
+		controls.enablePan = false;
+		controls.maxDistance = controls.minDistance = 350;
+		controls.enableKeys = false;
+		controls.enableZoom = false;
+		controls.update();
+		document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+		document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+		document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+		function setMouseCoords( x, y ) {
+			mouseCoords.set( ( x / renderer.domElement.clientWidth ) * 2 - 1, - ( y / renderer.domElement.clientHeight ) * 2 + 1 );
+			mouseMoved = true;
+		}
+
+		function onDocumentMouseMove( event ) {
+			setMouseCoords( event.clientX, event.clientY );
+		}
+
+		function onDocumentTouchStart( event ) {
+			if ( event.touches.length === 1 ) {
+				event.preventDefault();
+				setMouseCoords( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+			}
+		}
+
+		function onDocumentTouchMove( event ) {
+			if ( event.touches.length === 1 ) {
+				event.preventDefault();
+				setMouseCoords( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+			}
+		}
+
+		function onWindowResize() {
+			if ($(window).width() > 900) {
+				windowHalfX = window.innerWidth / 4;
+				windowHalfY = window.innerWidth / 4;
+				renderer.setSize( window.innerWidth/2, window.innerWidth/2 );
+			} else {
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerWidth / 2;
+				renderer.setSize( window.innerWidth, window.innerWidth );
+			}
+			camera.aspect = 1;
+			camera.updateProjectionMatrix();
+			renderer.setPixelRatio( window.devicePixelRatio );
+		}
+
+
+		function animate() {
+			requestAnimationFrame( animate );
+			render();
+		}
+
+
+
+		function render() {
+			if ( camera.position.y < 0 ) camera.position.y = 0
+			camera.lookAt( scene.position );
+			renderer.render( scene, camera );
+		}
+
+		animate();
+}
+  </script>
