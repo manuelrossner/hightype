@@ -21,7 +21,7 @@ var threeInitiad = false;
 
 function init3D() {
 
-	var canvas = document.querySelector('#three-left');
+	var canvas = document.querySelector('#hightype-container');
 
 	camera = new THREE.PerspectiveCamera( 3, (.5*window.innerWidth) / (.5*window.innerWidth), 1, 2000 );
 
@@ -146,3 +146,5 @@ function init3D() {
 		animate();
 }
   </script>
+  
+ <div id="hightype-container"></div>
